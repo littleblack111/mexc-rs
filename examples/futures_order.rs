@@ -1,13 +1,20 @@
 use dotenv::dotenv;
-use mexc_rs::futures::v1::endpoints::order::{Order, OrderParams};
-use mexc_rs::futures::v1::models::{OpenType, OrderSide, OrderType};
-use mexc_rs::futures::{MexcFuturesApiClientWithAuthentication, MexcFuturesApiEndpoint};
+use mexc_rs::futures::{
+    v1::{
+        endpoints::order::{Order, OrderParams},
+        models::{OpenType, OrderSide, OrderType},
+    },
+    MexcFuturesApiClientWithAuthentication, MexcFuturesApiEndpoint,
+};
 use rust_decimal::Decimal;
 use std::str::FromStr;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    std::env::set_var("RUST_LOG", "mexc_rs=debug,futures_order=trace");
+    std::env::set_var(
+        "RUST_LOG",
+        "mexc_rs=debug,futures_order=trace",
+    );
     tracing_subscriber::fmt::init();
 
     dotenv().ok();
@@ -34,8 +41,13 @@ async fn main() -> anyhow::Result<()> {
         position_mode: None,
         reduce_only: None,
     };
-    let order_output = client.order(params).await?;
-    tracing::info!("{:#?}", order_output);
+    let order_output = client
+        .order(params)
+        .await?;
+    tracing::info!(
+        "{:#?}",
+        order_output
+    );
 
     Ok(())
 }
