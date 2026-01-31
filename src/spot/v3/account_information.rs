@@ -1,5 +1,7 @@
-use crate::spot::v3::{ApiResponse, ApiResult};
-use crate::spot::MexcSpotApiClientWithAuthentication;
+use crate::spot::{
+    v3::{ApiResponse, ApiResult},
+    MexcSpotApiClientWithAuthentication,
+};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
@@ -45,11 +47,17 @@ pub struct AccountInformationQuery {
 #[async_trait]
 impl AccountInformationEndpoint for MexcSpotApiClientWithAuthentication {
     async fn account_information(&self) -> ApiResult<AccountInformationOutput> {
-        let endpoint = format!("{}/api/v3/account", self.endpoint.as_ref());
-        let query = self.sign_query(AccountInformationQuery {
-            recv_window: None,
-            timestamp: Utc::now(),
-        })?;
+        let endpoint = format!(
+            "{}/api/v3/account",
+            self.endpoint
+                .as_ref()
+        );
+        let query = self.sign_query(
+            AccountInformationQuery {
+                recv_window: None,
+                timestamp: Utc::now(),
+            },
+        )?;
         let response = self
             .reqwest_client
             .get(endpoint)
@@ -72,7 +80,9 @@ mod tests {
     #[tokio::test]
     async fn test() {
         let client = MexcSpotApiClientWithAuthentication::new_for_test();
-        let result = client.account_information().await;
+        let result = client
+            .account_information()
+            .await;
         assert!(result.is_ok());
     }
 }

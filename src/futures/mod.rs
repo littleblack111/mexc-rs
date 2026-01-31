@@ -40,12 +40,12 @@ impl MexcFuturesApiClient {
         }
     }
 
-    pub fn into_with_authentication(
-        self,
-        api_key: String,
-        secret_key: String,
-    ) -> MexcFuturesApiClientWithAuthentication {
-        MexcFuturesApiClientWithAuthentication::new(self.endpoint, api_key, secret_key)
+    pub fn into_with_authentication(self, api_key: String, secret_key: String) -> MexcFuturesApiClientWithAuthentication {
+        MexcFuturesApiClientWithAuthentication::new(
+            self.endpoint,
+            api_key,
+            secret_key,
+        )
     }
 }
 
@@ -76,18 +76,16 @@ impl MexcFuturesApiClientWithAuthentication {
         }
     }
 
-    fn get_auth_header_map<T>(
-        &self,
-        params: &T,
-        kind: SignRequestParamsKind,
-    ) -> Result<reqwest::header::HeaderMap, GetAuthHeaderMapError>
+    fn get_auth_header_map<T>(&self, params: &T, kind: SignRequestParamsKind) -> Result<reqwest::header::HeaderMap, GetAuthHeaderMapError>
     where
         T: serde::Serialize,
     {
         let mut header_map = reqwest::header::HeaderMap::new();
         header_map.insert(
             "ApiKey",
-            self.api_key.parse().expect("Failed to parse api key"),
+            self.api_key
+                .parse()
+                .expect("Failed to parse api key"),
         );
         let now = Utc::now();
         header_map.insert(
@@ -121,7 +119,11 @@ impl MexcFuturesApiClientWithAuthentication {
         dotenv::dotenv().ok();
         let api_key = std::env::var("MEXC_API_KEY").expect("MEXC_API_KEY not set");
         let secret_key = std::env::var("MEXC_SECRET_KEY").expect("MEXC_SECRET_KEY not set");
-        Self::new(MexcFuturesApiEndpoint::Base, api_key, secret_key)
+        Self::new(
+            MexcFuturesApiEndpoint::Base,
+            api_key,
+            secret_key,
+        )
     }
 }
 

@@ -1,8 +1,10 @@
-use crate::futures::auth::SignRequestParamsKind;
-use crate::futures::response::ApiResponse;
-use crate::futures::result::ApiResult;
-use crate::futures::v1::models::{OpenType, OrderSide, OrderType, PositionMode};
-use crate::futures::MexcFuturesApiClientWithAuthentication;
+use crate::futures::{
+    auth::SignRequestParamsKind,
+    response::ApiResponse,
+    result::ApiResult,
+    v1::models::{OpenType, OrderSide, OrderType, PositionMode},
+    MexcFuturesApiClientWithAuthentication,
+};
 use async_trait::async_trait;
 use rust_decimal::Decimal;
 
@@ -76,9 +78,16 @@ impl<'a> From<&OrderParams<'a>> for OrderPayload<'a> {
 #[async_trait]
 impl Order for MexcFuturesApiClientWithAuthentication {
     async fn order<'a>(&self, params: OrderParams<'a>) -> ApiResult<OrderOutput> {
-        let url = format!("{}/api/v1/private/order/submit", self.endpoint.as_ref());
+        let url = format!(
+            "{}/api/v1/private/order/submit",
+            self.endpoint
+                .as_ref()
+        );
         let payload = OrderPayload::from(&params);
-        let auth_header_map = self.get_auth_header_map(&payload, SignRequestParamsKind::Body)?;
+        let auth_header_map = self.get_auth_header_map(
+            &payload,
+            SignRequestParamsKind::Body,
+        )?;
         let response = self
             .reqwest_client
             .post(&url)
@@ -86,9 +95,15 @@ impl Order for MexcFuturesApiClientWithAuthentication {
             .json(&payload)
             .send()
             .await?;
-        let api_response = response.json::<ApiResponse<i64>>().await?;
+        let api_response = response
+            .json::<ApiResponse<i64>>()
+            .await?;
         let order_id = api_response.into_api_result()?;
 
-        Ok(OrderOutput { order_id })
+        Ok(
+            OrderOutput {
+                order_id,
+            },
+        )
     }
 }

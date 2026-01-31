@@ -1,6 +1,10 @@
-use crate::spot::v3::enums::{OrderSide, OrderStatus, OrderType};
-use crate::spot::v3::{ApiResponse, ApiResult};
-use crate::spot::MexcSpotApiClientWithAuthentication;
+use crate::spot::{
+    v3::{
+        enums::{OrderSide, OrderStatus, OrderType},
+        ApiResponse, ApiResult,
+    },
+    MexcSpotApiClientWithAuthentication,
+};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
@@ -78,7 +82,11 @@ pub trait QueryOrderEndpoint {
 #[async_trait]
 impl QueryOrderEndpoint for MexcSpotApiClientWithAuthentication {
     async fn query_order(&self, params: QueryOrderParams<'_>) -> ApiResult<QueryOrderOutput> {
-        let endpoint = format!("{}/api/v3/order", self.endpoint.as_ref());
+        let endpoint = format!(
+            "{}/api/v3/order",
+            self.endpoint
+                .as_ref()
+        );
         let query = QueryOrderQuery::from(params);
         let query_with_signature = self.sign_query(query)?;
 
@@ -89,7 +97,9 @@ impl QueryOrderEndpoint for MexcSpotApiClientWithAuthentication {
             .send()
             .await?;
 
-        let api_response = response.json::<ApiResponse<QueryOrderOutput>>().await?;
+        let api_response = response
+            .json::<ApiResponse<QueryOrderOutput>>()
+            .await?;
         let output = api_response.into_api_result()?;
 
         Ok(output)
@@ -108,7 +118,9 @@ mod tests {
             order_id: None,
             original_client_order_id: Some("MY_ORDER_ID"),
         };
-        let result = client.query_order(params).await;
+        let result = client
+            .query_order(params)
+            .await;
         assert!(result.is_ok());
     }
 }

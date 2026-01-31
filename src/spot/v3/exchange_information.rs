@@ -1,6 +1,7 @@
-use crate::spot::v3::enums::OrderType;
-use crate::spot::v3::{ApiResponse, ApiResult};
-use crate::spot::MexcSpotApiTrait;
+use crate::spot::{
+    v3::{enums::OrderType, ApiResponse, ApiResult},
+    MexcSpotApiTrait,
+};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
@@ -75,19 +76,17 @@ impl<'a> From<ExchangeInformationParams<'a>> for ExchangeInformationEndpointQuer
 
 #[async_trait]
 pub trait ExchangeInformationEndpoint {
-    async fn exchange_information(
-        &self,
-        params: ExchangeInformationParams<'_>,
-    ) -> ApiResult<ExchangeInformationOutput>;
+    async fn exchange_information(&self, params: ExchangeInformationParams<'_>) -> ApiResult<ExchangeInformationOutput>;
 }
 
 #[async_trait]
 impl<T: MexcSpotApiTrait + Sync> ExchangeInformationEndpoint for T {
-    async fn exchange_information(
-        &self,
-        params: ExchangeInformationParams<'_>,
-    ) -> ApiResult<ExchangeInformationOutput> {
-        let endpoint = format!("{}/api/v3/exchangeInfo", self.endpoint().as_ref());
+    async fn exchange_information(&self, params: ExchangeInformationParams<'_>) -> ApiResult<ExchangeInformationOutput> {
+        let endpoint = format!(
+            "{}/api/v3/exchangeInfo",
+            self.endpoint()
+                .as_ref()
+        );
         let query_params = ExchangeInformationEndpointQueryParams::from(params);
         let response = self
             .reqwest_client()
@@ -114,7 +113,9 @@ mod tests {
     async fn test_no_params() {
         let client = MexcSpotApiClient::default();
         let params = ExchangeInformationParams::None;
-        let result = client.exchange_information(params).await;
+        let result = client
+            .exchange_information(params)
+            .await;
         assert!(result.is_ok());
     }
 
@@ -122,21 +123,42 @@ mod tests {
     async fn test_single_symbol() {
         let client = MexcSpotApiClient::default();
         let params = ExchangeInformationParams::Symbol("BTCUSDT");
-        let result = client.exchange_information(params).await;
+        let result = client
+            .exchange_information(params)
+            .await;
         assert!(result.is_ok());
         let output = result.unwrap();
-        assert_eq!(output.symbols.len(), 1);
+        assert_eq!(
+            output
+                .symbols
+                .len(),
+            1
+        );
         let first_symbol = &output.symbols[0];
-        assert_eq!(first_symbol.symbol, "BTCUSDT");
+        assert_eq!(
+            first_symbol.symbol,
+            "BTCUSDT"
+        );
     }
 
     #[tokio::test]
     async fn test_multiple_symbols() {
         let client = MexcSpotApiClient::default();
-        let params = ExchangeInformationParams::Symbols(&["BTCUSDT", "ETHUSDT"]);
-        let result = client.exchange_information(params).await;
+        let params = ExchangeInformationParams::Symbols(
+            &[
+                "BTCUSDT", "ETHUSDT",
+            ],
+        );
+        let result = client
+            .exchange_information(params)
+            .await;
         assert!(result.is_ok());
         let output = result.unwrap();
-        assert_eq!(output.symbols.len(), 2);
+        assert_eq!(
+            output
+                .symbols
+                .len(),
+            2
+        );
     }
 }

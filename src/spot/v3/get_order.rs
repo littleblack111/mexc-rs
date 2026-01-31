@@ -1,6 +1,7 @@
-use crate::spot::v3::models::Order;
-use crate::spot::v3::{ApiResponse, ApiResult};
-use crate::spot::MexcSpotApiClientWithAuthentication;
+use crate::spot::{
+    v3::{models::Order, ApiResponse, ApiResult},
+    MexcSpotApiClientWithAuthentication,
+};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 
@@ -48,7 +49,11 @@ pub trait GetOrderEndpoint {
 #[async_trait]
 impl GetOrderEndpoint for MexcSpotApiClientWithAuthentication {
     async fn get_order(&self, params: GetOrderParams<'_>) -> ApiResult<Order> {
-        let endpoint = format!("{}/api/v3/order", self.endpoint.as_ref());
+        let endpoint = format!(
+            "{}/api/v3/order",
+            self.endpoint
+                .as_ref()
+        );
         let query = GetOrderQuery::from(params);
         let query_with_signature = self.sign_query(query)?;
 
@@ -58,7 +63,9 @@ impl GetOrderEndpoint for MexcSpotApiClientWithAuthentication {
             .query(&query_with_signature)
             .send()
             .await?;
-        let api_response = response.json::<ApiResponse<Order>>().await?;
+        let api_response = response
+            .json::<ApiResponse<Order>>()
+            .await?;
         let output = api_response.into_api_result()?;
 
         Ok(output)
@@ -78,7 +85,9 @@ mod tests {
             original_client_order_id: Some("MY_ORDER_ID"),
             new_client_order_id: None,
         };
-        let result = client.get_order(params).await;
+        let result = client
+            .get_order(params)
+            .await;
         assert!(result.is_ok());
     }
 }

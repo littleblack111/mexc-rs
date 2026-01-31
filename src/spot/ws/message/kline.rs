@@ -1,5 +1,7 @@
-use crate::spot::v3::enums::KlineInterval;
-use crate::spot::ws::message::{RawChannelMessage, RawChannelMessageData};
+use crate::spot::{
+    v3::enums::KlineInterval,
+    ws::message::{RawChannelMessage, RawChannelMessageData},
+};
 use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
 
@@ -9,7 +11,10 @@ use super::RawEventChannelMessageData;
 #[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct RawKlineData {
-    #[serde(rename = "T", with = "chrono::serde::ts_seconds")]
+    #[serde(
+        rename = "T",
+        with = "chrono::serde::ts_seconds"
+    )]
     pub T: DateTime<Utc>,
     pub a: Decimal,
     pub c: Decimal,
@@ -17,7 +22,10 @@ pub(crate) struct RawKlineData {
     pub l: Decimal,
     pub o: Decimal,
     pub i: KlineIntervalTopic,
-    #[serde(rename = "t", with = "chrono::serde::ts_seconds")]
+    #[serde(
+        rename = "t",
+        with = "chrono::serde::ts_seconds"
+    )]
     pub t: DateTime<Utc>,
     pub v: Decimal,
 }
@@ -130,16 +138,18 @@ pub enum ChannelMessageToSpotKlineMessageError {
     NoKlineMessage,
 }
 
-pub(crate) fn channel_message_to_spot_kline_message(
-    channel_message: &RawChannelMessage,
-) -> Result<SpotKlineMessage, ChannelMessageToSpotKlineMessageError> {
+pub(crate) fn channel_message_to_spot_kline_message(channel_message: &RawChannelMessage) -> Result<SpotKlineMessage, ChannelMessageToSpotKlineMessageError> {
     let Some(symbol) = &channel_message.symbol else {
         return Err(ChannelMessageToSpotKlineMessageError::NoKlineMessage);
     };
     let RawChannelMessageData::Event(event) = &channel_message.data else {
         return Err(ChannelMessageToSpotKlineMessageError::NoKlineMessage);
     };
-    let RawEventChannelMessageData::Kline { k, .. } = &event else {
+    let RawEventChannelMessageData::Kline {
+        k,
+        ..
+    } = &event
+    else {
         return Err(ChannelMessageToSpotKlineMessageError::NoKlineMessage);
     };
 

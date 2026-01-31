@@ -20,8 +20,16 @@ pub trait DefaultSymbolsEndpoint {
 #[async_trait]
 impl<T: MexcSpotApiTrait + Sync> DefaultSymbolsEndpoint for T {
     async fn time(&self) -> ApiResult<DefaultsSymbolsOutput> {
-        let endpoint = format!("{}/api/v3/defaultSymbols", self.endpoint().as_ref());
-        let response = self.reqwest_client().get(&endpoint).send().await?;
+        let endpoint = format!(
+            "{}/api/v3/defaultSymbols",
+            self.endpoint()
+                .as_ref()
+        );
+        let response = self
+            .reqwest_client()
+            .get(&endpoint)
+            .send()
+            .await?;
         let api_response = response
             .json::<ApiResponse<DefaultsSymbolsOutput>>()
             .await?;
@@ -40,7 +48,9 @@ mod tests {
     #[tokio::test]
     async fn test_default_symbols() {
         let client = MexcSpotApiClient::default();
-        let result = client.time().await;
+        let result = client
+            .time()
+            .await;
         assert!(result.is_ok());
     }
 }

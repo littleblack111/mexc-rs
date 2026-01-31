@@ -1,6 +1,10 @@
-use crate::spot::v3::enums::{OrderSide, OrderStatus, OrderType};
-use crate::spot::v3::{ApiResponse, ApiResult};
-use crate::spot::MexcSpotApiClientWithAuthentication;
+use crate::spot::{
+    v3::{
+        enums::{OrderSide, OrderStatus, OrderType},
+        ApiResponse, ApiResult,
+    },
+    MexcSpotApiClientWithAuthentication,
+};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
@@ -58,19 +62,17 @@ pub struct CanceledOrder {
 
 #[async_trait]
 pub trait CancelAllOpenOrdersOnASymbolEndpoint {
-    async fn cancel_all_open_orders_on_a_symbol(
-        &self,
-        params: CancelAllOpenOrdersOnASymbolParams<'_>,
-    ) -> ApiResult<CancelAllOpenOrdersOnASymbolOutput>;
+    async fn cancel_all_open_orders_on_a_symbol(&self, params: CancelAllOpenOrdersOnASymbolParams<'_>) -> ApiResult<CancelAllOpenOrdersOnASymbolOutput>;
 }
 
 #[async_trait]
 impl CancelAllOpenOrdersOnASymbolEndpoint for MexcSpotApiClientWithAuthentication {
-    async fn cancel_all_open_orders_on_a_symbol(
-        &self,
-        params: CancelAllOpenOrdersOnASymbolParams<'_>,
-    ) -> ApiResult<CancelAllOpenOrdersOnASymbolOutput> {
-        let endpoint = format!("{}/api/v3/openOrders", self.endpoint.as_ref());
+    async fn cancel_all_open_orders_on_a_symbol(&self, params: CancelAllOpenOrdersOnASymbolParams<'_>) -> ApiResult<CancelAllOpenOrdersOnASymbolOutput> {
+        let endpoint = format!(
+            "{}/api/v3/openOrders",
+            self.endpoint
+                .as_ref()
+        );
         let query = CancelAllOpenOrdersOnASymbolQuery::from(params);
         let query_with_signature = self.sign_query(query)?;
 
@@ -80,10 +82,16 @@ impl CancelAllOpenOrdersOnASymbolEndpoint for MexcSpotApiClientWithAuthenticatio
             .query(&query_with_signature)
             .send()
             .await?;
-        let api_response = response.json::<ApiResponse<Vec<CanceledOrder>>>().await?;
+        let api_response = response
+            .json::<ApiResponse<Vec<CanceledOrder>>>()
+            .await?;
         let canceled_orders = api_response.into_api_result()?;
 
-        Ok(CancelAllOpenOrdersOnASymbolOutput { canceled_orders })
+        Ok(
+            CancelAllOpenOrdersOnASymbolOutput {
+                canceled_orders,
+            },
+        )
     }
 }
 
@@ -94,8 +102,12 @@ mod tests {
     #[tokio::test]
     async fn cancel_order() {
         let client = MexcSpotApiClientWithAuthentication::new_for_test();
-        let params = CancelAllOpenOrdersOnASymbolParams { symbol: "KASUSDT" };
-        let result = client.cancel_all_open_orders_on_a_symbol(params).await;
+        let params = CancelAllOpenOrdersOnASymbolParams {
+            symbol: "KASUSDT",
+        };
+        let result = client
+            .cancel_all_open_orders_on_a_symbol(params)
+            .await;
         assert!(result.is_ok());
     }
 

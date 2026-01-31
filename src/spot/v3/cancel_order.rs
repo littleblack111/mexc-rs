@@ -1,6 +1,10 @@
-use crate::spot::v3::enums::{OrderSide, OrderStatus, OrderType};
-use crate::spot::v3::{ApiResponse, ApiResult};
-use crate::spot::MexcSpotApiClientWithAuthentication;
+use crate::spot::{
+    v3::{
+        enums::{OrderSide, OrderStatus, OrderType},
+        ApiResponse, ApiResult,
+    },
+    MexcSpotApiClientWithAuthentication,
+};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
@@ -71,7 +75,11 @@ pub trait CancelOrderEndpoint {
 #[async_trait]
 impl CancelOrderEndpoint for MexcSpotApiClientWithAuthentication {
     async fn cancel_order(&self, params: CancelOrderParams<'_>) -> ApiResult<CancelOrderOutput> {
-        let endpoint = format!("{}/api/v3/order", self.endpoint.as_ref());
+        let endpoint = format!(
+            "{}/api/v3/order",
+            self.endpoint
+                .as_ref()
+        );
         let query = CancelOrderQuery::from(params);
         let query_with_signature = self.sign_query(query)?;
 
@@ -81,7 +89,9 @@ impl CancelOrderEndpoint for MexcSpotApiClientWithAuthentication {
             .query(&query_with_signature)
             .send()
             .await?;
-        let api_response = response.json::<ApiResponse<CancelOrderOutput>>().await?;
+        let api_response = response
+            .json::<ApiResponse<CancelOrderOutput>>()
+            .await?;
         let output = api_response.into_api_result()?;
 
         Ok(output)
@@ -101,7 +111,9 @@ mod tests {
             original_client_order_id: Some("MY_ORDER_ID"),
             new_client_order_id: None,
         };
-        let result = client.cancel_order(params).await;
+        let result = client
+            .cancel_order(params)
+            .await;
         assert!(result.is_ok());
     }
 }

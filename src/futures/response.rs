@@ -1,7 +1,11 @@
-use crate::futures::error::{ApiError, ErrorCode};
-use crate::futures::result::ApiResult;
-use std::error::Error;
-use std::fmt::{Display, Formatter};
+use crate::futures::{
+    error::{ApiError, ErrorCode},
+    result::ApiResult,
+};
+use std::{
+    error::Error,
+    fmt::{Display, Formatter},
+};
 
 #[derive(Debug, serde::Deserialize)]
 #[serde(untagged)]

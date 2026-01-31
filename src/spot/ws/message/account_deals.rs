@@ -1,5 +1,7 @@
-use crate::spot::v3::enums::OrderSide;
-use crate::spot::ws::message::{RawChannelMessage, RawChannelMessageData};
+use crate::spot::{
+    v3::enums::OrderSide,
+    ws::message::{RawChannelMessage, RawChannelMessageData},
+};
 use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
 
@@ -45,9 +47,7 @@ pub(crate) enum ChannelMessageToAccountDealsMessageError {
     InvalidChannelMessage,
 }
 
-pub(crate) fn channel_message_to_account_deals_message(
-    message: &RawChannelMessage,
-) -> Result<AccountDealsMessage, ChannelMessageToAccountDealsMessageError> {
+pub(crate) fn channel_message_to_account_deals_message(message: &RawChannelMessage) -> Result<AccountDealsMessage, ChannelMessageToAccountDealsMessageError> {
     let RawChannelMessageData::AccountDeals(account_deals_data) = &message.data else {
         return Err(ChannelMessageToAccountDealsMessageError::InvalidChannelMessage);
     };
@@ -65,16 +65,24 @@ pub(crate) fn channel_message_to_account_deals_message(
             return Err(ChannelMessageToAccountDealsMessageError::InvalidChannelMessage);
         },
         trade_time: account_deals_data.T,
-        client_order_id: account_deals_data.c.clone(),
-        order_id: account_deals_data.i.clone(),
+        client_order_id: account_deals_data
+            .c
+            .clone(),
+        order_id: account_deals_data
+            .i
+            .clone(),
         is_maker: account_deals_data.m == 1,
         price: account_deals_data.p,
         is_self_trade: account_deals_data.st == 1,
-        trade_id: account_deals_data.t.clone(),
+        trade_id: account_deals_data
+            .t
+            .clone(),
         quantity: account_deals_data.v,
         deals_amount: account_deals_data.a,
         commission_fee: account_deals_data.n,
-        commission_asset: account_deals_data.N.clone(),
+        commission_asset: account_deals_data
+            .N
+            .clone(),
         event_time: message.timestamp,
     };
 

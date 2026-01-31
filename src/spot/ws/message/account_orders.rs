@@ -1,5 +1,7 @@
-use crate::spot::v3::enums::{OrderSide, OrderStatus};
-use crate::spot::ws::message::{RawChannelMessage, RawChannelMessageData};
+use crate::spot::{
+    v3::enums::{OrderSide, OrderStatus},
+    ws::message::{RawChannelMessage, RawChannelMessageData},
+};
 use chrono::{DateTime, Utc};
 use num_traits::FromPrimitive;
 use rust_decimal::Decimal;
@@ -63,9 +65,7 @@ pub(crate) enum ChannelMessageToAccountOrdersMessageInvalidity {
     StopLimitOrderState,
 }
 
-pub(crate) fn channel_message_to_account_orders_message(
-    message: &RawChannelMessage,
-) -> Result<AccountOrdersMessage, ChannelMessageToAccountOrdersMessageInvalidity> {
+pub(crate) fn channel_message_to_account_orders_message(message: &RawChannelMessage) -> Result<AccountOrdersMessage, ChannelMessageToAccountOrdersMessageInvalidity> {
     let RawChannelMessageData::AccountOrders(account_orders_data) = &message.data else {
         return Err(ChannelMessageToAccountOrdersMessageInvalidity::ChannelMessage);
     };
@@ -86,11 +86,14 @@ pub(crate) fn channel_message_to_account_orders_message(
                 },
                 remain_quantity: limit_or_market.V,
                 amount: limit_or_market.a,
-                client_order_id: limit_or_market.c.clone(),
-                order_id: limit_or_market.i.clone(),
+                client_order_id: limit_or_market
+                    .c
+                    .clone(),
+                order_id: limit_or_market
+                    .i
+                    .clone(),
                 is_maker: limit_or_market.m == 1,
-                order_kind: OrderKind::from_u8(limit_or_market.o)
-                    .ok_or(ChannelMessageToAccountOrdersMessageInvalidity::OrderKind)?,
+                order_kind: OrderKind::from_u8(limit_or_market.o).ok_or(ChannelMessageToAccountOrdersMessageInvalidity::OrderKind)?,
                 price: limit_or_market.p,
                 status: match limit_or_market.s {
                     1 => OrderStatus::New,
@@ -111,7 +114,9 @@ pub(crate) fn channel_message_to_account_orders_message(
         RawAccountOrdersChannelMessageData::StopLimit(stop_limit) => {
             let msg = StopLimitAccountOrdersMessage {
                 symbol: asset.clone(),
-                commission_asset: stop_limit.N.clone(),
+                commission_asset: stop_limit
+                    .N
+                    .clone(),
                 create_time: stop_limit.O,
                 trigger_price: stop_limit.P,
                 trade_type: if stop_limit.S == 1 {
@@ -119,14 +124,13 @@ pub(crate) fn channel_message_to_account_orders_message(
                 } else {
                     OrderSide::Sell
                 },
-                direction: StopLimitDirection::from_u8(stop_limit.T)
-                    .ok_or(ChannelMessageToAccountOrdersMessageInvalidity::StopLimitDirection)?,
-                order_id: stop_limit.i.clone(),
-                order_kind: OrderKind::from_u8(stop_limit.o)
-                    .ok_or(ChannelMessageToAccountOrdersMessageInvalidity::OrderKind)?,
+                direction: StopLimitDirection::from_u8(stop_limit.T).ok_or(ChannelMessageToAccountOrdersMessageInvalidity::StopLimitDirection)?,
+                order_id: stop_limit
+                    .i
+                    .clone(),
+                order_kind: OrderKind::from_u8(stop_limit.o).ok_or(ChannelMessageToAccountOrdersMessageInvalidity::OrderKind)?,
                 price: stop_limit.p,
-                state: StopLimitOrderState::from_u8(stop_limit.s)
-                    .ok_or(ChannelMessageToAccountOrdersMessageInvalidity::StopLimitOrderState)?,
+                state: StopLimitOrderState::from_u8(stop_limit.s).ok_or(ChannelMessageToAccountOrdersMessageInvalidity::StopLimitOrderState)?,
                 quantity: stop_limit.v,
                 timestamp: message.timestamp,
             };
@@ -164,17 +168,7 @@ pub struct LimitOrMarketAccountOrdersMessage {
     pub timestamp: DateTime<Utc>,
 }
 
-#[derive(
-    Debug,
-    PartialEq,
-    Eq,
-    Clone,
-    Copy,
-    Hash,
-    serde_repr::Deserialize_repr,
-    serde_repr::Serialize_repr,
-    num_derive::FromPrimitive,
-)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, serde_repr::Deserialize_repr, serde_repr::Serialize_repr, num_derive::FromPrimitive)]
 #[repr(u8)]
 pub enum OrderKind {
     LimitOrder = 1,
@@ -201,34 +195,14 @@ pub struct StopLimitAccountOrdersMessage {
     pub timestamp: DateTime<Utc>,
 }
 
-#[derive(
-    Debug,
-    PartialEq,
-    Eq,
-    Clone,
-    Copy,
-    Hash,
-    serde_repr::Deserialize_repr,
-    serde_repr::Serialize_repr,
-    num_derive::FromPrimitive,
-)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, serde_repr::Deserialize_repr, serde_repr::Serialize_repr, num_derive::FromPrimitive)]
 #[repr(u8)]
 pub enum StopLimitDirection {
     PriceHigherThanTriggerPrice = 0,
     PriceLowerThanTriggerPrice = 1,
 }
 
-#[derive(
-    Debug,
-    PartialEq,
-    Eq,
-    Clone,
-    Copy,
-    Hash,
-    serde_repr::Deserialize_repr,
-    serde_repr::Serialize_repr,
-    num_derive::FromPrimitive,
-)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, serde_repr::Deserialize_repr, serde_repr::Serialize_repr, num_derive::FromPrimitive)]
 #[repr(u8)]
 pub enum StopLimitOrderState {
     New = 0,

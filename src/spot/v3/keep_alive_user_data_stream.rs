@@ -1,5 +1,7 @@
-use crate::spot::v3::{ApiResponse, ApiResult};
-use crate::spot::MexcSpotApiClientWithAuthentication;
+use crate::spot::{
+    v3::{ApiResponse, ApiResult},
+    MexcSpotApiClientWithAuthentication,
+};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 
@@ -24,25 +26,28 @@ pub struct KeepAliveUserDataStreamOutput {
 
 #[async_trait]
 pub trait KeepAliveUserDataStreamEndpoint {
-    async fn keep_alive_user_data_stream(
-        &self,
-        params: KeepAliveUserDataStreamParams<'_>,
-    ) -> ApiResult<KeepAliveUserDataStreamOutput>;
+    async fn keep_alive_user_data_stream(&self, params: KeepAliveUserDataStreamParams<'_>) -> ApiResult<KeepAliveUserDataStreamOutput>;
 }
 
 #[async_trait]
 impl KeepAliveUserDataStreamEndpoint for MexcSpotApiClientWithAuthentication {
-    async fn keep_alive_user_data_stream(
-        &self,
-        params: KeepAliveUserDataStreamParams<'_>,
-    ) -> ApiResult<KeepAliveUserDataStreamOutput> {
-        let url = format!("{}/api/v3/userDataStream", self.endpoint.as_ref());
+    async fn keep_alive_user_data_stream(&self, params: KeepAliveUserDataStreamParams<'_>) -> ApiResult<KeepAliveUserDataStreamOutput> {
+        let url = format!(
+            "{}/api/v3/userDataStream",
+            self.endpoint
+                .as_ref()
+        );
         let query = KeepAliveUserDataStreamQuery {
             timestamp: Utc::now(),
             listen_key: params.listen_key,
         };
         let query = self.sign_query(&query)?;
-        let response = self.reqwest_client.put(&url).query(&query).send().await?;
+        let response = self
+            .reqwest_client
+            .put(&url)
+            .query(&query)
+            .send()
+            .await?;
         let api_response = response
             .json::<ApiResponse<KeepAliveUserDataStreamOutput>>()
             .await?;

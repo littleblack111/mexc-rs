@@ -1,5 +1,7 @@
-use crate::spot::v3::enums::ChangedType;
-use crate::spot::ws::message::{RawChannelMessage, RawChannelMessageData};
+use crate::spot::{
+    v3::enums::ChangedType,
+    ws::message::{RawChannelMessage, RawChannelMessageData},
+};
 use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
 
@@ -9,15 +11,15 @@ pub(crate) enum ChannelMessageToAccountUpdateMessageError {
     InvalidChannelMessage,
 }
 
-pub(crate) fn channel_message_to_account_update_message(
-    message: &RawChannelMessage,
-) -> Result<AccountUpdateMessage, ChannelMessageToAccountUpdateMessageError> {
+pub(crate) fn channel_message_to_account_update_message(message: &RawChannelMessage) -> Result<AccountUpdateMessage, ChannelMessageToAccountUpdateMessageError> {
     let RawChannelMessageData::AccountUpdate(account_update_data) = &message.data else {
         return Err(ChannelMessageToAccountUpdateMessageError::InvalidChannelMessage);
     };
 
     let message = AccountUpdateMessage {
-        asset: account_update_data.a.clone(),
+        asset: account_update_data
+            .a
+            .clone(),
         change_time: account_update_data.c,
         free_balance: account_update_data.f,
         free_changed_amount: account_update_data.fd,

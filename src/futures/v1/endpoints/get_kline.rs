@@ -1,7 +1,7 @@
-use crate::futures::response::ApiResponse;
-use crate::futures::result::ApiResult;
-use crate::futures::v1::models::{Kline, KlineInterval};
 use crate::futures::{
+    response::ApiResponse,
+    result::ApiResult,
+    v1::models::{Kline, KlineInterval},
     MexcFuturesApiClient, MexcFuturesApiClientWithAuthentication, MexcFuturesApiEndpoint,
 };
 use async_trait::async_trait;
@@ -57,26 +57,35 @@ pub trait GetKline {
     async fn get_kline(&self, params: GetKlineParams<'_>) -> ApiResult<GetKlineOutput>;
 }
 
-async fn default_impl(
-    endpoint: &MexcFuturesApiEndpoint,
-    reqwest: &Client,
-    params: GetKlineParams<'_>,
-) -> ApiResult<GetKlineOutput> {
+async fn default_impl(endpoint: &MexcFuturesApiEndpoint, reqwest: &Client, params: GetKlineParams<'_>) -> ApiResult<GetKlineOutput> {
     let url = format!(
         "{}/api/v1/contract/kline/{}",
         endpoint.as_ref(),
         params.symbol
     );
     let query = GetKlineQuery::from(params);
-    let response = reqwest.get(&url).query(&query).send().await?;
-    let api_response = response.json::<ApiResponse<KlineData>>().await?;
+    let response = reqwest
+        .get(&url)
+        .query(&query)
+        .send()
+        .await?;
+    let api_response = response
+        .json::<ApiResponse<KlineData>>()
+        .await?;
     let data = api_response.into_api_result()?;
 
-    let amount_of_entries = data.time.len();
+    let amount_of_entries = data
+        .time
+        .len();
     let mut klines = Vec::with_capacity(amount_of_entries);
     for i in 0..amount_of_entries {
         let kline = Kline {
-            time: Utc.timestamp_opt(data.time[i], 0).unwrap(),
+            time: Utc
+                .timestamp_opt(
+                    data.time[i],
+                    0,
+                )
+                .unwrap(),
             open: data.open[i],
             close: data.close[i],
             high: data.high[i],
@@ -87,19 +96,33 @@ async fn default_impl(
         klines.push(kline);
     }
 
-    Ok(GetKlineOutput { klines })
+    Ok(
+        GetKlineOutput {
+            klines,
+        },
+    )
 }
 
 #[async_trait]
 impl GetKline for MexcFuturesApiClient {
     async fn get_kline(&self, params: GetKlineParams<'_>) -> ApiResult<GetKlineOutput> {
-        default_impl(&self.endpoint, &self.reqwest_client, params).await
+        default_impl(
+            &self.endpoint,
+            &self.reqwest_client,
+            params,
+        )
+        .await
     }
 }
 
 #[async_trait]
 impl GetKline for MexcFuturesApiClientWithAuthentication {
     async fn get_kline(&self, params: GetKlineParams<'_>) -> ApiResult<GetKlineOutput> {
-        default_impl(&self.endpoint, &self.reqwest_client, params).await
+        default_impl(
+            &self.endpoint,
+            &self.reqwest_client,
+            params,
+        )
+        .await
     }
 }

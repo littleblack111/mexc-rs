@@ -1,5 +1,7 @@
-use crate::spot::v3::{ApiResponse, ApiResult};
-use crate::spot::MexcSpotApiTrait;
+use crate::spot::{
+    v3::{ApiResponse, ApiResult},
+    MexcSpotApiTrait,
+};
 use async_trait::async_trait;
 use rust_decimal::Decimal;
 
@@ -35,14 +37,20 @@ pub trait DepthEndpoint {
 #[async_trait]
 impl<T: MexcSpotApiTrait + Sync> DepthEndpoint for T {
     async fn depth(&self, params: DepthParams<'_>) -> ApiResult<DepthOutput> {
-        let endpoint = format!("{}/api/v3/depth", self.endpoint().as_ref());
+        let endpoint = format!(
+            "{}/api/v3/depth",
+            self.endpoint()
+                .as_ref()
+        );
         let response = self
             .reqwest_client()
             .get(&endpoint)
             .query(&params)
             .send()
             .await?;
-        let api_response = response.json::<ApiResponse<DepthOutput>>().await?;
+        let api_response = response
+            .json::<ApiResponse<DepthOutput>>()
+            .await?;
         let output = api_response.into_api_result()?;
 
         Ok(output)
@@ -62,7 +70,9 @@ mod tests {
             symbol: "BTCUSDT",
             limit: None,
         };
-        let result = client.depth(depth_params).await;
+        let result = client
+            .depth(depth_params)
+            .await;
         assert!(result.is_ok());
     }
 }

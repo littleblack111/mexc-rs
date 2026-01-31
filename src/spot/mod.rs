@@ -1,6 +1,5 @@
 use async_trait::async_trait;
-use hmac::digest::InvalidLength;
-use hmac::{Hmac, Mac};
+use hmac::{digest::InvalidLength, Hmac, Mac};
 use sha2::Sha256;
 
 pub mod v3;
@@ -45,12 +44,12 @@ impl MexcSpotApiClient {
         }
     }
 
-    pub fn into_with_authentication(
-        self,
-        api_key: String,
-        secret_key: String,
-    ) -> MexcSpotApiClientWithAuthentication {
-        MexcSpotApiClientWithAuthentication::new(self.endpoint, api_key, secret_key)
+    pub fn into_with_authentication(self, api_key: String, secret_key: String) -> MexcSpotApiClientWithAuthentication {
+        MexcSpotApiClientWithAuthentication::new(
+            self.endpoint,
+            api_key,
+            secret_key,
+        )
     }
 }
 
@@ -83,7 +82,9 @@ impl MexcSpotApiClientWithAuthentication {
         let mut headers = reqwest::header::HeaderMap::new();
         headers.insert(
             "X-MEXC-APIKEY",
-            api_key.parse().expect("Failed to parse api key"),
+            api_key
+                .parse()
+                .expect("Failed to parse api key"),
         );
         let reqwest_client = reqwest::Client::builder()
             .default_headers(headers)
@@ -102,13 +103,20 @@ impl MexcSpotApiClientWithAuthentication {
         T: serde::Serialize,
     {
         let query_string = serde_urlencoded::to_string(&query)?;
-        let mut mac = Hmac::<Sha256>::new_from_slice(self.secret_key.as_bytes())?;
+        let mut mac = Hmac::<Sha256>::new_from_slice(
+            self.secret_key
+                .as_bytes(),
+        )?;
         mac.update(query_string.as_bytes());
         let mac_result = mac.finalize();
         let mac_bytes = mac_result.into_bytes();
         let signature = hex::encode(mac_bytes);
 
-        Ok(QueryWithSignature::new(query, signature))
+        Ok(
+            QueryWithSignature::new(
+                query, signature,
+            ),
+        )
     }
 
     #[cfg(test)]
@@ -116,7 +124,11 @@ impl MexcSpotApiClientWithAuthentication {
         dotenv::dotenv().ok();
         let api_key = std::env::var("MEXC_API_KEY").expect("MEXC_API_KEY not set");
         let secret_key = std::env::var("MEXC_SECRET_KEY").expect("MEXC_SECRET_KEY not set");
-        Self::new(MexcSpotApiEndpoint::Base, api_key, secret_key)
+        Self::new(
+            MexcSpotApiEndpoint::Base,
+            api_key,
+            secret_key,
+        )
     }
 }
 
@@ -140,7 +152,10 @@ pub struct QueryWithSignature<T> {
 
 impl<T> QueryWithSignature<T> {
     pub fn new(query: T, signature: String) -> Self {
-        Self { query, signature }
+        Self {
+            query,
+            signature,
+        }
     }
 }
 

@@ -1,6 +1,10 @@
-use crate::spot::v3::enums::{OrderSide, OrderType};
-use crate::spot::v3::{ApiResponse, ApiResult};
-use crate::spot::MexcSpotApiClientWithAuthentication;
+use crate::spot::{
+    v3::{
+        enums::{OrderSide, OrderType},
+        ApiResponse, ApiResult,
+    },
+    MexcSpotApiClientWithAuthentication,
+};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
@@ -25,7 +29,10 @@ pub struct OrderQuery<'a> {
     pub order_type: OrderType,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub quantity: Option<Decimal>,
-    #[serde(rename = "quoteOrderQty", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "quoteOrderQty",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub quote_order_quantity: Option<Decimal>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub price: Option<Decimal>,
@@ -74,12 +81,17 @@ pub trait OrderEndpoint {
     async fn order(&self, params: OrderParams<'_>) -> ApiResult<OrderOutput>;
 }
 
-// 04/05/2025 Note for anyone trying to implement /api/v3/order/test : it's useless, the api just check fied names
+// 04/05/2025 Note for anyone trying to implement /api/v3/order/test : it's
+// useless, the api just check fied names
 
 #[async_trait]
 impl OrderEndpoint for MexcSpotApiClientWithAuthentication {
     async fn order(&self, params: OrderParams<'_>) -> ApiResult<OrderOutput> {
-        let endpoint = format!("{}/api/v3/order", self.endpoint.as_ref());
+        let endpoint = format!(
+            "{}/api/v3/order",
+            self.endpoint
+                .as_ref()
+        );
         let query = OrderQuery::from(params);
         let query_with_signature = self.sign_query(query)?;
 
@@ -89,7 +101,9 @@ impl OrderEndpoint for MexcSpotApiClientWithAuthentication {
             .query(&query_with_signature)
             .send()
             .await?;
-        let api_response = response.json::<ApiResponse<OrderOutput>>().await?;
+        let api_response = response
+            .json::<ApiResponse<OrderOutput>>()
+            .await?;
         let output = api_response.into_api_result()?;
 
         Ok(output)
@@ -114,7 +128,9 @@ mod tests {
             price: Some(Decimal::from_str("0.001").unwrap()),
             new_client_order_id: None,
         };
-        let result = client.order(params).await;
+        let result = client
+            .order(params)
+            .await;
         assert!(result.is_ok());
     }
 }

@@ -34,12 +34,16 @@ impl Topic {
             Topic::Kline(kline_topic) => format!(
                 "spot@public.kline.v3.api@{symbol}@{interval}",
                 symbol = kline_topic.symbol,
-                interval = kline_topic.interval.as_ref()
+                interval = kline_topic
+                    .interval
+                    .as_ref()
             ),
             Topic::Depth(depth_topic) => format!(
                 "spot@public.aggre.depth.v3.api.pb@{freq}@{symbol}",
                 symbol = depth_topic.symbol,
-                freq = depth_topic.frequency.to_api_str()
+                freq = depth_topic
+                    .frequency
+                    .to_api_str()
             ),
         }
     }
@@ -52,7 +56,9 @@ pub struct DealsTopic {
 
 impl DealsTopic {
     pub fn new(symbol: String) -> Self {
-        Self { symbol }
+        Self {
+            symbol,
+        }
     }
 }
 
@@ -64,7 +70,10 @@ pub struct KlineTopic {
 
 impl KlineTopic {
     pub fn new(symbol: String, interval: KlineIntervalTopic) -> Self {
-        Self { symbol, interval }
+        Self {
+            symbol,
+            interval,
+        }
     }
 }
 

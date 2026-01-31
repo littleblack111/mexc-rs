@@ -28,9 +28,7 @@ pub enum ChannelMessageToOrderbookUpdateMessageError {
     NoOrderbookUpdateMessage,
 }
 
-pub(crate) fn channel_message_to_spot_orderbook_update_message(
-    channel_message: &RawChannelMessage,
-) -> Result<OrderbookUpdateMessage, ChannelMessageToOrderbookUpdateMessageError> {
+pub(crate) fn channel_message_to_spot_orderbook_update_message(channel_message: &RawChannelMessage) -> Result<OrderbookUpdateMessage, ChannelMessageToOrderbookUpdateMessageError> {
     let Some(symbol) = &channel_message.symbol else {
         return Err(ChannelMessageToOrderbookUpdateMessageError::NoOrderbookUpdateMessage);
     };
@@ -55,20 +53,24 @@ pub(crate) fn channel_message_to_spot_orderbook_update_message(
         asks: match asks {
             Some(asks) => asks
                 .iter()
-                .map(|raw| PriceAndQuantity {
-                    price: raw.price,
-                    quantity: raw.quantity,
-                })
+                .map(
+                    |raw| PriceAndQuantity {
+                        price: raw.price,
+                        quantity: raw.quantity,
+                    },
+                )
                 .collect(),
             None => vec![],
         },
         bids: match bids {
             Some(bids) => bids
                 .iter()
-                .map(|raw| PriceAndQuantity {
-                    price: raw.price,
-                    quantity: raw.quantity,
-                })
+                .map(
+                    |raw| PriceAndQuantity {
+                        price: raw.price,
+                        quantity: raw.quantity,
+                    },
+                )
                 .collect(),
             None => vec![],
         },

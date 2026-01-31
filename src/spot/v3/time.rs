@@ -1,5 +1,7 @@
-use crate::spot::v3::{ApiResponse, ApiResult};
-use crate::spot::MexcSpotApiTrait;
+use crate::spot::{
+    v3::{ApiResponse, ApiResult},
+    MexcSpotApiTrait,
+};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 
@@ -18,9 +20,19 @@ pub trait TimeEndpoint {
 #[async_trait]
 impl<T: MexcSpotApiTrait + Sync> TimeEndpoint for T {
     async fn time(&self) -> ApiResult<TimeOutput> {
-        let endpoint = format!("{}/api/v3/time", self.endpoint().as_ref());
-        let response = self.reqwest_client().get(&endpoint).send().await?;
-        let api_response = response.json::<ApiResponse<TimeOutput>>().await?;
+        let endpoint = format!(
+            "{}/api/v3/time",
+            self.endpoint()
+                .as_ref()
+        );
+        let response = self
+            .reqwest_client()
+            .get(&endpoint)
+            .send()
+            .await?;
+        let api_response = response
+            .json::<ApiResponse<TimeOutput>>()
+            .await?;
         let output = api_response.into_api_result()?;
 
         Ok(output)
@@ -36,7 +48,9 @@ mod tests {
     #[tokio::test]
     async fn test_time() {
         let client = MexcSpotApiClient::default();
-        let result = client.time().await;
+        let result = client
+            .time()
+            .await;
         assert!(result.is_ok());
     }
 }

@@ -1,13 +1,13 @@
-use crate::spot::ws::{message::Message, MexcSpotWebsocketClient};
+use crate::futures::ws::{message::FuturesMessage, MexcFuturesWebsocketClient};
 use futures::{stream::BoxStream, StreamExt};
 use std::sync::Arc;
 
-pub trait Stream {
-    fn stream<'a>(self: Arc<Self>) -> BoxStream<'a, Arc<Message>>;
+pub trait FuturesStream {
+    fn stream<'a>(self: Arc<Self>) -> BoxStream<'a, Arc<FuturesMessage>>;
 }
 
-impl Stream for MexcSpotWebsocketClient {
-    fn stream<'a>(self: Arc<Self>) -> BoxStream<'a, Arc<Message>> {
+impl FuturesStream for MexcFuturesWebsocketClient {
+    fn stream<'a>(self: Arc<Self>) -> BoxStream<'a, Arc<FuturesMessage>> {
         let mut rx = self
             .broadcast_tx
             .subscribe();

@@ -1,9 +1,8 @@
-use crate::spot::ws::auth::WebsocketAuth;
-use crate::spot::ws::endpoint::MexcWebsocketEndpoint;
-use crate::spot::ws::topic::Topic;
-use crate::spot::MexcSpotApiEndpoint;
-use std::collections::HashMap;
-use std::sync::Arc;
+use crate::spot::{
+    ws::{auth::WebsocketAuth, endpoint::MexcWebsocketEndpoint, topic::Topic},
+    MexcSpotApiEndpoint,
+};
+use std::{collections::HashMap, sync::Arc};
 use tokio::sync::RwLock;
 use uuid::Uuid;
 
@@ -40,17 +39,18 @@ pub struct MexcSpotWebsocketClient {
 }
 
 impl MexcSpotWebsocketClient {
-    pub fn new_with_endpoints(
-        ws_endpoint: MexcWebsocketEndpoint,
-        spot_api_endpoint: MexcSpotApiEndpoint,
-    ) -> Self {
+    pub fn new_with_endpoints(ws_endpoint: MexcWebsocketEndpoint, spot_api_endpoint: MexcSpotApiEndpoint) -> Self {
         let (broadcast_tx, _broadcast_rx) = tokio::sync::broadcast::channel(1024);
 
         Self {
-            inner: Arc::new(RwLock::new(Inner {
-                auth_to_listen_key_map: HashMap::new(),
-                websockets: Vec::new(),
-            })),
+            inner: Arc::new(
+                RwLock::new(
+                    Inner {
+                        auth_to_listen_key_map: HashMap::new(),
+                        websockets: Vec::new(),
+                    },
+                ),
+            ),
             ws_endpoint: Arc::new(ws_endpoint),
             spot_api_endpoint: Arc::new(spot_api_endpoint),
             broadcast_tx,
@@ -64,7 +64,10 @@ impl MexcSpotWebsocketClient {
 
 impl Default for MexcSpotWebsocketClient {
     fn default() -> Self {
-        Self::new_with_endpoints(MexcWebsocketEndpoint::Base, MexcSpotApiEndpoint::Base)
+        Self::new_with_endpoints(
+            MexcWebsocketEndpoint::Base,
+            MexcSpotApiEndpoint::Base,
+        )
     }
 }
 

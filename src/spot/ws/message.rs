@@ -1,23 +1,13 @@
-use self::orderbook_update::{
-    channel_message_to_spot_orderbook_update_message, OrderbookUpdateMessage, RawOrderData,
-};
-use crate::proto::push_data_v3_api_wrapper::Body::PublicAggreDepths;
-use crate::proto::{PublicAggreDepthsV3Api, PushDataV3ApiWrapper};
-use crate::spot::ws::message::account_deals::{
-    channel_message_to_account_deals_message, AccountDealsMessage, RawAccountDealsData,
-};
-use crate::spot::ws::message::account_orders::{
-    channel_message_to_account_orders_message, AccountOrdersMessage,
-    RawAccountOrdersChannelMessageData,
-};
-use crate::spot::ws::message::account_update::{
-    channel_message_to_account_update_message, AccountUpdateMessage, RawAccountUpdateData,
-};
-use crate::spot::ws::message::deals::{
-    channel_message_to_spot_deals_message, RawSpotDealData, SpotDealsMessage,
-};
-use crate::spot::ws::message::kline::{
-    channel_message_to_spot_kline_message, RawKlineData, SpotKlineMessage,
+use self::orderbook_update::{channel_message_to_spot_orderbook_update_message, OrderbookUpdateMessage, RawOrderData};
+use crate::{
+    proto::{push_data_v3_api_wrapper::Body::PublicAggreDepths, PublicAggreDepthsV3Api, PushDataV3ApiWrapper},
+    spot::ws::message::{
+        account_deals::{channel_message_to_account_deals_message, AccountDealsMessage, RawAccountDealsData},
+        account_orders::{channel_message_to_account_orders_message, AccountOrdersMessage, RawAccountOrdersChannelMessageData},
+        account_update::{channel_message_to_account_update_message, AccountUpdateMessage, RawAccountUpdateData},
+        deals::{channel_message_to_spot_deals_message, RawSpotDealData, SpotDealsMessage},
+        kline::{channel_message_to_spot_kline_message, RawKlineData, SpotKlineMessage},
+    },
 };
 use chrono::{DateTime, Utc};
 use prost::Message as ProstMessage;
@@ -60,33 +50,19 @@ impl TryFrom<&RawMessage> for Message {
         match value {
             RawMessage::IdCodeMessage(_) => Err(()),
             RawMessage::ChannelMessage(raw_channel_message) => match &raw_channel_message.data {
-                RawChannelMessageData::AccountDeals(_) => Ok(Message::AccountDeals(
-                    channel_message_to_account_deals_message(raw_channel_message)
-                        .map_err(|_| ())?,
-                )),
-                RawChannelMessageData::AccountUpdate(_) => Ok(Message::AccountUpdate(
-                    channel_message_to_account_update_message(raw_channel_message)
-                        .map_err(|_| ())?,
-                )),
-                RawChannelMessageData::AccountOrders(_) => Ok(Message::AccountOrders(
-                    channel_message_to_account_orders_message(raw_channel_message)
-                        .map_err(|_| ())?,
-                )),
+                RawChannelMessageData::AccountDeals(_) => Ok(Message::AccountDeals(channel_message_to_account_deals_message(raw_channel_message).map_err(|_| ())?)),
+                RawChannelMessageData::AccountUpdate(_) => Ok(Message::AccountUpdate(channel_message_to_account_update_message(raw_channel_message).map_err(|_| ())?)),
+                RawChannelMessageData::AccountOrders(_) => Ok(Message::AccountOrders(channel_message_to_account_orders_message(raw_channel_message).map_err(|_| ())?)),
                 RawChannelMessageData::Event(event) => match &event {
-                    RawEventChannelMessageData::Deals { .. } => Ok(Message::Deals(
-                        channel_message_to_spot_deals_message(raw_channel_message)
-                            .map_err(|_| ())?,
-                    )),
-                    RawEventChannelMessageData::Kline { .. } => Ok(Message::Kline(
-                        channel_message_to_spot_kline_message(raw_channel_message)
-                            .map_err(|_| ())?,
-                    )),
-                    RawEventChannelMessageData::OrdersUpdate { .. } => {
-                        Ok(Message::OrderbookUpdate(
-                            channel_message_to_spot_orderbook_update_message(raw_channel_message)
-                                .map_err(|_| ())?,
-                        ))
-                    }
+                    RawEventChannelMessageData::Deals {
+                        ..
+                    } => Ok(Message::Deals(channel_message_to_spot_deals_message(raw_channel_message).map_err(|_| ())?)),
+                    RawEventChannelMessageData::Kline {
+                        ..
+                    } => Ok(Message::Kline(channel_message_to_spot_kline_message(raw_channel_message).map_err(|_| ())?)),
+                    RawEventChannelMessageData::OrdersUpdate {
+                        ..
+                    } => Ok(Message::OrderbookUpdate(channel_message_to_spot_orderbook_update_message(raw_channel_message).map_err(|_| ())?)),
                 },
             },
         }
@@ -94,7 +70,10 @@ impl TryFrom<&RawMessage> for Message {
 }
 
 #[derive(Debug, serde::Deserialize)]
-#[allow(clippy::large_enum_variant, dead_code)]
+#[allow(
+    clippy::large_enum_variant,
+    dead_code
+)]
 #[serde(untagged)]
 pub(crate) enum RawMessage {
     IdCodeMessage(RawIdCodeMessage),
@@ -121,7 +100,10 @@ pub(crate) struct RawChannelMessage {
     pub data: RawChannelMessageData,
     #[serde(rename = "s")]
     pub symbol: Option<String>,
-    #[serde(rename = "t", with = "chrono::serde::ts_milliseconds")]
+    #[serde(
+        rename = "t",
+        with = "chrono::serde::ts_milliseconds"
+    )]
     pub timestamp: DateTime<Utc>,
 }
 
@@ -171,7 +153,10 @@ mod tests {
         let deserializer = &mut serde_json::Deserializer::from_str(json);
 
         let result: Result<RawMessage, _> = serde_path_to_error::deserialize(deserializer);
-        eprintln!("{:?}", result);
+        eprintln!(
+            "{:?}",
+            result
+        );
         assert!(result.is_ok());
     }
 
@@ -183,7 +168,10 @@ mod tests {
         let deserializer = &mut serde_json::Deserializer::from_str(json);
 
         let result: Result<RawChannelMessage, _> = serde_path_to_error::deserialize(deserializer);
-        eprintln!("{:?}", result);
+        eprintln!(
+            "{:?}",
+            result
+        );
         assert!(result.is_ok());
     }
 
@@ -195,7 +183,10 @@ mod tests {
         let deserializer = &mut serde_json::Deserializer::from_str(json);
 
         let result: Result<RawKlineData, _> = serde_path_to_error::deserialize(deserializer);
-        eprintln!("{:?}", result);
+        eprintln!(
+            "{:?}",
+            result
+        );
         assert!(result.is_ok());
     }
 
@@ -207,9 +198,11 @@ mod tests {
 
         let deserializer = &mut serde_json::Deserializer::from_str(json);
 
-        let result: Result<RawEventChannelMessageData, _> =
-            serde_path_to_error::deserialize(deserializer);
-        eprintln!("{:?}", result);
+        let result: Result<RawEventChannelMessageData, _> = serde_path_to_error::deserialize(deserializer);
+        eprintln!(
+            "{:?}",
+            result
+        );
         assert!(result.is_ok());
     }
 
@@ -222,7 +215,10 @@ mod tests {
         let deserializer = &mut serde_json::Deserializer::from_str(json);
 
         let result: Result<RawChannelMessage, _> = serde_path_to_error::deserialize(deserializer);
-        eprintln!("{:?}", result);
+        eprintln!(
+            "{:?}",
+            result
+        );
         assert!(result.is_ok());
     }
 }

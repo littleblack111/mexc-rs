@@ -1,6 +1,5 @@
 use chrono::{DateTime, Utc};
-use hmac::digest::InvalidLength;
-use hmac::{Hmac, Mac};
+use hmac::{digest::InvalidLength, Hmac, Mac};
 use sha2::Sha256;
 
 #[derive(Debug)]
@@ -38,9 +37,7 @@ pub enum SignRequestError {
     SecretKeyInvalidLength(#[from] InvalidLength),
 }
 
-pub fn sign_request<T>(
-    params: SignRequestParams<'_, T>,
-) -> Result<SignRequestOutput, SignRequestError>
+pub fn sign_request<T>(params: SignRequestParams<'_, T>) -> Result<SignRequestOutput, SignRequestError>
 where
     T: serde::Serialize,
 {
@@ -48,12 +45,18 @@ where
         SignRequestParamsKind::Query => serde_urlencoded::to_string(params.params)?,
         SignRequestParamsKind::Body => serde_json::to_string(params.params)?,
     };
-    let mut mac = Hmac::<Sha256>::new_from_slice(params.secret_key.as_bytes())?;
+    let mut mac = Hmac::<Sha256>::new_from_slice(
+        params
+            .secret_key
+            .as_bytes(),
+    )?;
 
     let string_to_sign = format!(
         "{}{}{}",
         params.api_key,
-        params.time.timestamp_millis(),
+        params
+            .time
+            .timestamp_millis(),
         data_string
     );
 
@@ -62,5 +65,9 @@ where
     let mac_bytes = mac_result.into_bytes();
     let signature = hex::encode(mac_bytes);
 
-    Ok(SignRequestOutput { signature })
+    Ok(
+        SignRequestOutput {
+            signature,
+        },
+    )
 }

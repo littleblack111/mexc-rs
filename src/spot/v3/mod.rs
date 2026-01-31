@@ -28,11 +28,13 @@ pub type ApiResult<T> = Result<T, ApiError>;
 // https://mxcdevelop.github.io/apidocs/spot_v3_en/#base-endpoint
 #[derive(Debug, thiserror::Error)]
 pub enum ApiError {
-    /// HTTP 4XX return codes are used for malformed requests; the issue is on the sender's side.
+    /// HTTP 4XX return codes are used for malformed requests; the issue is on
+    /// the sender's side.
     #[error("Malformed request")]
     MalformedRequest,
 
-    /// HTTP 403 return code is used when the WAF Limit (Web Application Firewall) has been violated.
+    /// HTTP 403 return code is used when the WAF Limit (Web Application
+    /// Firewall) has been violated.
     #[error("Web application firewall (WAF) violated")]
     WebApplicationFirewallViolated,
 
@@ -40,7 +42,9 @@ pub enum ApiError {
     #[error("Rate limit exceeded")]
     RateLimitExceeded,
 
-    /// HTTP 5XX return codes are used for internal errors; the issue is on MEXC's side. It is important to NOT treat this as a failure operation; the execution status is UNKNOWN and could have been a success.
+    /// HTTP 5XX return codes are used for internal errors; the issue is on
+    /// MEXC's side. It is important to NOT treat this as a failure operation;
+    /// the execution status is UNKNOWN and could have been a success.
     #[error("Internal server error")]
     InternalServerError,
 
@@ -96,13 +100,16 @@ impl<T> ApiResponse<T> {
         match self {
             Self::Success(output) => Ok(output),
             Self::Error(err) => Err(err),
-            Self::ErrorStringifiedCode(esc) => {
-                Err(esc.try_into().map_err(|_err| ErrorResponse {
-                    msg: "Stringified error code cannot be parsed".to_string(),
-                    code: ErrorCode::InvalidResponse,
-                    _extend: None,
-                })?)
-            }
+            Self::ErrorStringifiedCode(esc) => Err(
+                esc.try_into()
+                    .map_err(
+                        |_err| ErrorResponse {
+                            msg: "Stringified error code cannot be parsed".to_string(),
+                            code: ErrorCode::InvalidResponse,
+                            _extend: None,
+                        },
+                    )?,
+            ),
         }
     }
 
@@ -110,15 +117,18 @@ impl<T> ApiResponse<T> {
         match self {
             Self::Success(output) => Ok(output),
             Self::Error(response) => Err(ApiError::ErrorResponse(response)),
-            Self::ErrorStringifiedCode(esc) => {
-                Err(ApiError::ErrorResponse(esc.try_into().map_err(|_err| {
-                    ErrorResponse {
-                        msg: "Stringified error code cannot be parsed".to_string(),
-                        code: ErrorCode::InvalidResponse,
-                        _extend: None,
-                    }
-                })?))
-            }
+            Self::ErrorStringifiedCode(esc) => Err(
+                ApiError::ErrorResponse(
+                    esc.try_into()
+                        .map_err(
+                            |_err| ErrorResponse {
+                                msg: "Stringified error code cannot be parsed".to_string(),
+                                code: ErrorCode::InvalidResponse,
+                                _extend: None,
+                            },
+                        )?,
+                ),
+            ),
         }
     }
 }
@@ -141,7 +151,10 @@ impl TryFrom<ErrorResponseStringifiedCode> for ErrorResponse {
     type Error = ();
 
     fn try_from(value: ErrorResponseStringifiedCode) -> Result<Self, Self::Error> {
-        let code = match value.code.parse::<i32>() {
+        let code = match value
+            .code
+            .parse::<i32>()
+        {
             Ok(code) => code,
             Err(_) => return Err(()),
         };
@@ -150,23 +163,17 @@ impl TryFrom<ErrorResponseStringifiedCode> for ErrorResponse {
             None => return Err(()),
         };
 
-        Ok(Self {
-            code,
-            msg: value.msg,
-            _extend: value._extend,
-        })
+        Ok(
+            Self {
+                code,
+                msg: value.msg,
+                _extend: value._extend,
+            },
+        )
     }
 }
 
-#[derive(
-    Debug,
-    PartialEq,
-    Eq,
-    Hash,
-    serde_repr::Deserialize_repr,
-    strum_macros::IntoStaticStr,
-    num_derive::FromPrimitive,
-)]
+#[derive(Debug, PartialEq, Eq, Hash, serde_repr::Deserialize_repr, strum_macros::IntoStaticStr, num_derive::FromPrimitive)]
 #[repr(i32)]
 pub enum ErrorCode {
     UnknownOrderSent = -2011,
@@ -270,7 +277,11 @@ pub enum ErrorCode {
 impl Display for ErrorCode {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let s: &'static str = self.into();
-        write!(f, "{}", s)
+        write!(
+            f,
+            "{}",
+            s
+        )
     }
 }
 
@@ -278,9 +289,17 @@ impl std::error::Error for ErrorCode {}
 
 impl Display for ErrorResponse {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Error {}: {}", self.code, self.msg)?;
+        write!(
+            f,
+            "Error {}: {}",
+            self.code, self.msg
+        )?;
         if let Some(extend) = &self._extend {
-            write!(f, " (extend: {:?})", extend)?;
+            write!(
+                f,
+                " (extend: {:?})",
+                extend
+            )?;
         }
 
         Ok(())
@@ -299,11 +318,20 @@ mod tests {
             {"code":"730002","msg":"Parameter error"}
         "#;
         let response = serde_json::from_str::<ApiResponse<()>>(json).unwrap();
-        eprintln!("{:#?}", response);
+        eprintln!(
+            "{:#?}",
+            response
+        );
         let result = response.into_result();
-        eprintln!("{:#?}", &result);
+        eprintln!(
+            "{:#?}",
+            &result
+        );
         assert!(result.is_err());
         let err = result.unwrap_err();
-        assert_eq!(err.code, ErrorCode::YourInputParamIsInvalidOrParameterError);
+        assert_eq!(
+            err.code,
+            ErrorCode::YourInputParamIsInvalidOrParameterError
+        );
     }
 }

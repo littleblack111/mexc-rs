@@ -1,6 +1,7 @@
-use crate::spot::v3::models::Order;
-use crate::spot::v3::{ApiResponse, ApiResult};
-use crate::spot::MexcSpotApiClientWithAuthentication;
+use crate::spot::{
+    v3::{models::Order, ApiResponse, ApiResult},
+    MexcSpotApiClientWithAuthentication,
+};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 
@@ -43,7 +44,11 @@ pub trait GetOpenOrdersEndpoint {
 #[async_trait]
 impl GetOpenOrdersEndpoint for MexcSpotApiClientWithAuthentication {
     async fn get_open_orders(&self, params: GetOpenOrdersParams<'_>) -> ApiResult<GetOrderOutput> {
-        let endpoint = format!("{}/api/v3/openOrders", self.endpoint.as_ref());
+        let endpoint = format!(
+            "{}/api/v3/openOrders",
+            self.endpoint
+                .as_ref()
+        );
         let query = GetOrderQuery::from(params);
         let query_with_signature = self.sign_query(query)?;
 
@@ -53,10 +58,14 @@ impl GetOpenOrdersEndpoint for MexcSpotApiClientWithAuthentication {
             .query(&query_with_signature)
             .send()
             .await?;
-        let api_response = response.json::<ApiResponse<Vec<Order>>>().await?;
+        let api_response = response
+            .json::<ApiResponse<Vec<Order>>>()
+            .await?;
         let orders = api_response.into_api_result()?;
 
-        let output = GetOrderOutput { orders };
+        let output = GetOrderOutput {
+            orders,
+        };
 
         Ok(output)
     }
@@ -69,9 +78,16 @@ mod tests {
     #[tokio::test]
     async fn get_open_orders() {
         let client = MexcSpotApiClientWithAuthentication::new_for_test();
-        let params = GetOpenOrdersParams { symbol: "KASUSDT" };
-        let result = client.get_open_orders(params).await;
-        eprintln!("{:?}", &result);
+        let params = GetOpenOrdersParams {
+            symbol: "KASUSDT",
+        };
+        let result = client
+            .get_open_orders(params)
+            .await;
+        eprintln!(
+            "{:?}",
+            &result
+        );
         assert!(result.is_ok());
     }
 
@@ -82,6 +98,9 @@ mod tests {
         let deserializer = &mut serde_json::Deserializer::from_str(j);
 
         let result: Result<Vec<Order>, _> = serde_path_to_error::deserialize(deserializer);
-        eprintln!("{:?}", &result);
+        eprintln!(
+            "{:?}",
+            &result
+        );
     }
 }

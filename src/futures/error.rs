@@ -1,7 +1,6 @@
 // https://mxcdevelop.github.io/apidocs/contract_v1_en/#error-code-example
 
-use crate::futures::response::ErrorApiResponse;
-use crate::futures::GetAuthHeaderMapError;
+use crate::futures::{response::ErrorApiResponse, GetAuthHeaderMapError};
 use std::fmt::{Display, Formatter};
 
 #[derive(Debug, thiserror::Error)]
@@ -54,8 +53,8 @@ pub enum ApiError {
 // 2016 	Trigger volume over the maximum
 // 2018 	Exceeding the maximum available margin
 // 2019 	There is an active open position
-// 2021 	The single leverage is not consistent with the existing position leverage
-// 2022 	Wrong position type
+// 2021 	The single leverage is not consistent with the existing position
+// leverage 2022 	Wrong position type
 // 2023 	There are positions over the maximum leverage
 // 2024 	There are orders with leverage over the maximum
 // 2025 	The holding positions is over the maximum allowable positions
@@ -76,12 +75,12 @@ pub enum ApiError {
 // 4001 	Unsupported currency
 // 2036 	The orders more than the limit, please contact customer service
 // 2037 	Frequent transactions, please try it later
-// 2038 	The maximum allowable position quantity is exceeded, please contact customer service!
-// 5001 	The take-price and the stop-loss price cannot be none at the same time
-// 5002 	The Stop-Limit order does not exist or has closed
+// 2038 	The maximum allowable position quantity is exceeded, please contact
+// customer service! 5001 	The take-price and the stop-loss price cannot be none
+// at the same time 5002 	The Stop-Limit order does not exist or has closed
 // 5003 	Take-profit and stop-loss price setting is wrong
-// 5004 	The take-profit and stop-loss order volume is more than the holding positions can be liquidated
-// 6001 	Trading forbidden
+// 5004 	The take-profit and stop-loss order volume is more than the holding
+// positions can be liquidated 6001 	Trading forbidden
 // 6002 	Open forbidden
 // 6003 	Time range error
 // 6004 	The trading pair and status should be fill in
@@ -169,7 +168,11 @@ pub enum ErrorCode {
 impl Display for ErrorCode {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let s: &'static str = self.into();
-        write!(f, "{}", s)
+        write!(
+            f,
+            "{}",
+            s
+        )
     }
 }
 
